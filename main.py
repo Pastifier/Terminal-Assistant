@@ -122,6 +122,8 @@ class AITerminalAssistant:
         self.command_history = []
         self.initialize_system_context()
 
+        self.gave_suggestion = False
+
     def initialize_system_context(self):
         path_dirs = os.environ.get('PATH', '').split(os.pathsep)
         installed_commands = []
@@ -375,6 +377,7 @@ class AITerminalAssistant:
 
             if exit_code != 0:
                 debug_suggestion = self.debug_error(command, stderr, exit_code)
+                self.gave_suggestion = True
                 result += f"\n\n{format_text('yellow', bold=True)}Debugging Suggestion:{reset_format}\n{debug_suggestion}"
 
             return result.strip()
@@ -499,6 +502,15 @@ def get_terminal_size():
         columns, rows = os.get_terminal_size(1)
     return columns, rows
 
+def try_suggestions(response: str):
+    prompt = input("Should I try something different?")
+    match prompt.lower():
+        case 'y' || 'yes':
+            # do_suggestion()
+        case _:
+            print("Oh, well!")
+        
+
 def main():
     assistant = AITerminalAssistant()
     setup_readline()
@@ -523,6 +535,8 @@ def main():
                 break
 
             result = assistant.execute_command(user_input)
+            if (assistant.gave_suggestion):
+                try_suggestions(assistant, result)
             print(result)
 
         except KeyboardInterrupt:
